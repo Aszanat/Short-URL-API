@@ -3,11 +3,13 @@ Recruitment task - backend developer
 
 Wake me up:
 > python -m venv env
+
 > source env/bin/activate
 
 Before you go-go:
 > pip install -r requirements.txt
-> pyhton manage.py runserver
+
+> python manage.py runserver
 
 Don't leave me hanging on like a yo-yo:
 > deactivate
