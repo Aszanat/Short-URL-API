@@ -1,0 +1,57 @@
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Url
+from .serializers import UrlSerializer
+from django.core.exceptions import ValidationError
+from validators import url
+from uuid import uuid4
+
+@api_view(['GET'])
+def ApiOverview(request):
+    api_urls = {
+        'all_items': '/',
+        'Search by Category': '/?category=category_name',
+        'Search by Subcategory': '/?subcategory=category_name',
+        'Add': '/create',
+        'Update': '/update/pk',
+        'Delete': '/item/pk/delete'
+    }
+
+    return Response(api_urls)
+
+from rest_framework import serializers
+from rest_framework import status
+
+@api_view(['POST'])
+def new_url(request):
+    def create_url_from_short(short: str):
+        return request.build_absolute_uri(location="/") + "shrt/" + short
+    
+    new_url = request.data
+    if not isinstance(new_url, str):
+        raise serializers.ValidationError('Invalid value type, url should be a string')
+
+    if not url(new_url):
+        raise serializers.ValidationError('Invalid url provided')
+
+    url_object = {"full_url" : new_url}
+
+    if Url.objects.filter(**url_object).exists():
+        old_url = Url.objects.get(**url_object)
+        return Response(old_url.short_url)
+    
+    short_url = str(uuid4()).replace('-','')[:8]
+    short_url_object = {"short_url": create_url_from_short(short_url)}
+
+    while Url.objects.filter(**short_url_object).exists():
+        short_url = str(uuid4()).replace('-','')[:8]
+        short_url_object = {"short_url": create_url_from_short(short_url)}
+
+    url_object.update(short_url_object)
+    url_pair = UrlSerializer(data=url_object)
+
+    if not url_pair.is_valid():
+        raise serializers.ValidationError("This data could not have been serialized")
+    url_pair.save()
+
+    return Response(short_url_object["short_url"])
