@@ -47,7 +47,6 @@ def new_url(request):
         short_url = str(uuid4()).replace('-','')[:8]
         short_url_object = {"short_url": create_url_from_short(short_url)}
         try:
-            print("Transaction start!")
             with transaction.atomic():
                 if Url.objects.filter(**short_url_object).exists():
                     continue
