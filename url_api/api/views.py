@@ -1,11 +1,12 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.exceptions import ParseError, ValidationError, NotFound
 from .models import Url, url_max_len
 from .serializers import UrlSerializer
-from validators import url
-from uuid import uuid4
 from django.db import IntegrityError, transaction
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import serializers
+from rest_framework.exceptions import ParseError, ValidationError, NotFound
+from uuid import uuid4
+from validators import url
 
 @api_view(['GET'])
 def ApiOverview(request):
@@ -16,8 +17,6 @@ def ApiOverview(request):
     }
 
     return Response(api_urls)
-
-from rest_framework import serializers
 
 @api_view(['POST'])
 def new_url(request):
