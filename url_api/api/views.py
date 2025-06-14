@@ -7,8 +7,6 @@ from validators import url
 from uuid import uuid4
 from django.db import IntegrityError, transaction
 
-from random import choice
-
 @api_view(['GET'])
 def ApiOverview(request):
     api_urls = {
