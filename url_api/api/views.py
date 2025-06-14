@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.exceptions import ParseError, ValidationError, NotFound
 from .models import Url
 from .serializers import UrlSerializer
-from django.core.exceptions import ValidationError
 from validators import url
 from uuid import uuid4
 
@@ -10,11 +10,8 @@ from uuid import uuid4
 def ApiOverview(request):
     api_urls = {
         'all_items': '/',
-        'Search by Category': '/?category=category_name',
-        'Search by Subcategory': '/?subcategory=category_name',
-        'Add': '/create',
-        'Update': '/update/pk',
-        'Delete': '/item/pk/delete'
+        'Shorten URL': '/create',
+        'Get long URL': '/find'
     }
 
     return Response(api_urls)
@@ -29,10 +26,10 @@ def new_url(request):
     
     new_url = request.data
     if not isinstance(new_url, str):
-        raise serializers.ValidationError('Invalid value type, url should be a string')
+        raise ValidationError("Invalid value type, url to shorten (in request body) should be a string")
 
     if not url(new_url):
-        raise serializers.ValidationError('Invalid url provided')
+        raise ValidationError("Invalid url provided")
 
     url_object = {"full_url" : new_url}
 
@@ -55,3 +52,20 @@ def new_url(request):
     url_pair.save()
 
     return Response(short_url_object["short_url"])
+
+@api_view(['GET'])
+def find_url(request):
+    short_url = request.query_params.get("shrt")
+    if not short_url:
+        raise ParseError("No query parameter provided: shrt (should be: string)")
+    
+    if not url(short_url):
+        raise ValidationError("Invalid url provided")
+
+    url_object = {"short_url": short_url}
+    if not Url.objects.filter(**url_object).exists():
+        raise NotFound("No long url matching this short url found")
+
+    full_url_object = Url.objects.get(**url_object)
+        
+    return Response(full_url_object.full_url)
