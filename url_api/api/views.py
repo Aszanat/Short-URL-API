@@ -18,7 +18,6 @@ def ApiOverview(request):
     return Response(api_urls)
 
 from rest_framework import serializers
-from rest_framework import status
 
 @api_view(['POST'])
 def new_url(request):
